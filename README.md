@@ -19,8 +19,8 @@
  ```bash
  export OPENREVIEW_USERNAME="you@example.com"
  export OPENREVIEW_PASSWORD="your_password"
- pip install openreview-py tqdm
+ pip install openreview-py tqdm pypdf
 
  # IEEE-style reference list
- python download_openreview_papers.py --query "reinforcement learning" --venues ICLR.cc/2025/Conference NeurIPS.cc/2024/Conference --style ieee --out papers
+ python download_openreview_papers.py --query "reinforcement learning" --venues ICLR.cc/2025/Conference NeurIPS.cc/2024/Conference  --style ieee  --out papers --max 40
  ```

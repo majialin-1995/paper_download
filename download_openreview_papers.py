@@ -1,30 +1,3 @@
-#!/usr/bin/env python3
-"""
- download_openreview_papers.py (v0.6 – 2025‑06‑28)
- -------------------------------------------------
- Download **accepted / published** PDFs from OpenReview that match a keyword and
- generate reference lists.
-
- NEW IN v0.6
- ===========
- • **Default**: only retrieve **accepted / officially published** papers.    
-   Submissions that are merely "Under Review" or withdrawn are skipped.
- • Add `--include-submitted` flag if you really want to include under‑review
-   submissions.
-
- Prior changes (v0.5, v0.4, …) remain available (venue full names, page
- numbers, IEEE / GB‑T 7714 styles, etc.).
-
- QUICK START
- ===========
- ```bash
- # downloads only *accepted* ICLR‑2025 & NeurIPS‑2024 RL papers
- python download_openreview_papers.py --query "reinforcement learning" --venues ICLR.cc/2025/Conference NeurIPS.cc/2024/Conference  --style ieee  --out papers --max 40
- 
- # include under‑review submissions as well
- python download_openreview_papers.py … --include-submitted
- ```
-"""
 from __future__ import annotations
 
 import argparse
