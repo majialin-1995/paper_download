@@ -1,4 +1,4 @@
-# OpenReview 论文下载工具
+# OpenReview 论文下载工具（CSIM速度会草稿生成工具）
 
 `download_openreview_papers.py` 是一个命令行脚本，用于从 OpenReview 网站批量下载论文 PDF，并生成对应的参考文献列表。当前支持 **GB/T 7714-2015 数字顺序** 和 **IEEE 会议论文** 两种引用格式。
 
@@ -9,11 +9,16 @@
 
 ## 安装
 1. 准备 `Python 3.8+` 环境；
-2. 安装依赖：
+2. 克隆仓库：
    ```bash
-   pip install openreview-py tqdm pypdf
+   git clone <repo_url>
+   cd paper_download
    ```
-3. 配置 OpenReview 登录信息：
+3. 安装依赖：
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. 配置 OpenReview 登录信息：
    ```bash
    export OPENREVIEW_USERNAME="you@example.com"
    export OPENREVIEW_PASSWORD="your_password"
@@ -53,11 +58,7 @@ export DEEPSEEK_API_KEY="your_api_key"
 python summarize_papers.py papers --out summaries
 ```
 
-## 更新日志
-- **v0.4** – 新增 `--style` 选项，可生成 GB/T 7714 或 IEEE 风格参考文献。
-- v0.3 – 支持 GB/T 7714 格式。
-- v0.2 – 修复 `details` 为空导致的问题。
-- v0.1 – 初始版本。
+
 
 ## 根据摘要生成 PPT
 
@@ -66,3 +67,11 @@ python summarize_papers.py papers --out summaries
 ```bash
 python generate_ppt.py summaries --out slides.pptx
 ```
+
+## 更新日志
+- **v0.6** – 生成PPT。
+- v0.5 – 通过deepseek生成PPT摘要。
+- v0.4 – 新增 `--style` 选项，可生成 GB/T 7714 或 IEEE 风格参考文献。
+- v0.3 – 支持 GB/T 7714 格式。
+- v0.2 – 修复 `details` 为空导致的问题。
+- v0.1 – 初始版本。
