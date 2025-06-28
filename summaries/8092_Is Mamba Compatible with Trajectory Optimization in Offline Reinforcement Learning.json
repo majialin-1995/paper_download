@@ -1,14 +1,14 @@
 {
-  "phenomenon": "Transformer-based trajectory optimization methods in offline Reinforcement Learning (offline RL) demonstrate exceptional performance but pose challenges due to substantial parameter size and limited scalability, especially in resource-constrained scenarios like robots and drones with limited computational power.",
+  "phenomenon": "在离线强化学习中，基于Transformer的轨迹优化方法表现出色，但由于参数量庞大和扩展性受限，难以在计算资源有限的场景（如机器人和无人机）中应用。",
   "problem": [
-    "(1) Long sequences impose a significant computational burden without contributing to performance improvements since DeMa’s focus on sequences diminishes approximately exponentially.",
-    "(2) The attention mechanism of Decision Transformer (DT) does not capture local associations effectively, rendering it unsuitable for RL.",
-    "(3) The computational demands of the attention mechanism escalate quadratically with the input length, posing a significant constraint on its scalability."
+    "(1) 长序列会带来很大的计算开销，而DeMa对序列的关注程度近似呈指数衰减，无法带来性能提升。",
+    "(2) Decision Transformer (DT) 的注意力机制无法有效捕获局部关联，使其不适合用于强化学习。",
+    "(3) 注意力机制的计算需求随输入长度呈二次增长，严重限制了其可扩展性。"
   ],
   "mechanism": [
-    "(1) Introduction of a Transformer-like DeMa as opposed to an RNN-like DeMa for efficiency and effectiveness.",
-    "(2) Identification of the hidden attention mechanism as a critical factor in DeMa's success, which can also work well with other residual structures and does not require position embedding.",
-    "(3) Utilization of Mamba, a promising new linear-time sequence model, offering performance on par with transformers while delivering substantially fewer parameters on long sequences."
+    "(1) 提出类似Transformer的DeMa，替代RNN式DeMa以提高效率和性能。",
+    "(2) 发现隐藏的注意力机制是DeMa成功的关键，可与其他残差结构配合且无需位置嵌入。",
+    "(3) 使用新颖的线性时间序列模型Mamba，在长序列上能以更少参数达到与Transformer相当的效果。"
   ],
   "result": {
     "datasets": [
@@ -16,8 +16,8 @@
       "MuJoCo"
     ],
     "performance": {
-      "Atari": "DeMa surpasses Decision Transformer (DT) with higher performance while using 30% fewer parameters.",
-      "MuJoCo": "DeMa exceeds DT with only a quarter of the parameters."
+      "Atari": "DeMa以30%更少的参数超越Decision Transformer。",
+      "MuJoCo": "DeMa仅用四分之一的参数就超过DT。"
     }
   }
 }
