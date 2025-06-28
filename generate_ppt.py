@@ -4,50 +4,46 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 from pathlib import Path
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, List
 
-from pptx import Presentation  # type: ignore
-from pptx.enum.text import PP_ALIGN
-from pptx.util import Inches, Pt
+try:  # pptx is only required when generating PPT
+    from pptx import Presentation  # type: ignore
+    from pptx.enum.text import PP_ALIGN
+    from pptx.util import Inches, Pt
+except Exception:  # pragma: no cover - optional dependency
+    Presentation = None  # type: ignore
+    PP_ALIGN = None  # type: ignore
+    Inches = Pt = None  # type: ignore
 
-try:
-    from openai import OpenAI
-except Exception:  # noqa: BLE001
-    OpenAI = None  # type: ignore
-
-# 检测中文字符
-_CJK_RE = re.compile(r"[\u4e00-\u9fff]")
-
-def is_chinese(text: str) -> bool:
-    return bool(_CJK_RE.search(text))
-
-
-def translate(text: str, client: OpenAI | None) -> str:
-    return text
+# ---------------------------------------------------------------------------
+# 原脚本包含调用大模型翻译的代码。本次修改仅保留生成 PPT 的功能，并
+# 新增打印论文信息的选项，因此移除了与大模型相关的依赖与函数。
+# ---------------------------------------------------------------------------
 
 
-def ensure_chinese(obj: Any, client: OpenAI | None) -> Any:
-    if isinstance(obj, str):
-        return translate(obj, client)
-    if isinstance(obj, Iterable):
-        return [ensure_chinese(x, client) for x in obj]
-    if isinstance(obj, dict):
-        return {k: ensure_chinese(v, client) for k, v in obj.items()}
-    return obj
+def find_reference(title: str, refs: List[str]) -> str:
+    """在参考文献列表中查找给定标题对应的条目。"""
+    norm = re.sub(r"[^\w\s]", "", title).lower()
+    for line in refs:
+        if norm in re.sub(r"[^\w\s]", "", line).lower():
+            return line
+    return ""
 
 
-def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+def parse_args(argv: List[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser("根据 summaries 生成 PPT")
     p.add_argument("summaries", type=Path, help="包含 JSON 摘要的目录")
     p.add_argument("--template", type=Path, default=Path("template.pptx"),
                    help="PPT 模板 (default: template.pptx)")
     p.add_argument("--out", type=Path, default=Path("slides.pptx"),
                    help="输出文件名")
-    p.add_argument("--api-key", dest="api_key",
-                   help="DeepSeek API key，用于翻译非中文内容")
+    p.add_argument("--refs", type=Path,
+                   default=Path("papers/references_ieee.txt"),
+                   help="参考文献文件 (default: papers/references_ieee.txt)")
+    p.add_argument("--print-info", action="store_true",
+                   help="仅打印摘要信息，不生成 PPT")
     return p.parse_args(argv)
 
 
@@ -99,18 +95,33 @@ def add_slide(prs: Presentation, title: str, data: Dict[str, Any], num: int) -> 
 
 
 
-def main(argv: list[str] | None = None) -> None:
+def main(argv: List[str] | None = None) -> None:
     args = parse_args(argv)
-    api_key = args.api_key or os.getenv("DEEPSEEK_API_KEY")
-    client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com") if api_key else None
+
+    if args.print_info:
+        refs: List[str] = []
+        if args.refs.is_file():
+            refs = args.refs.read_text(encoding="utf-8").splitlines()
+        for idx, json_file in enumerate(sorted(args.summaries.glob("*.json")), 1):
+            data = json.loads(json_file.read_text(encoding="utf-8"))
+            title = json_file.stem.split("_", 1)[1] if "_" in json_file.stem else json_file.stem
+            ref = find_reference(title, refs)
+            print(f"{idx}. {title}")
+            if ref:
+                print(ref)
+            print(json.dumps(data, ensure_ascii=False, indent=2))
+            print()
+        return
+
+    if Presentation is None:
+        raise SystemExit("python-pptx is required to generate slides")
 
     prs = Presentation(str(args.template))
 
     for idx, json_file in enumerate(sorted(args.summaries.glob("*.json")), 1):
         data = json.loads(json_file.read_text(encoding="utf-8"))
-        data = ensure_chinese(data, client)
         add_slide(prs, json_file.stem, data, idx)
-        
+
     prs.save(args.out)
     print(f"✔ Saved {args.out}")
 
