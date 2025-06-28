@@ -9,11 +9,16 @@
 
 ## 安装
 1. 准备 `Python 3.8+` 环境；
-2. 安装依赖：
+2. 克隆仓库：
    ```bash
-   pip install openreview-py tqdm pypdf
+   git clone <repo_url>
+   cd paper_download
    ```
-3. 配置 OpenReview 登录信息：
+3. 安装依赖：
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. 配置 OpenReview 登录信息：
    ```bash
    export OPENREVIEW_USERNAME="you@example.com"
    export OPENREVIEW_PASSWORD="your_password"
