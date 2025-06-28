@@ -1,0 +1,23 @@
+{
+  "phenomenon": "Transformer-based trajectory optimization methods in offline Reinforcement Learning (offline RL) demonstrate exceptional performance but pose challenges due to substantial parameter size and limited scalability, especially in resource-constrained scenarios like robots and drones with limited computational power.",
+  "problem": [
+    "(1) Long sequences impose a significant computational burden without contributing to performance improvements since DeMa’s focus on sequences diminishes approximately exponentially.",
+    "(2) The attention mechanism of Decision Transformer (DT) does not capture local associations effectively, rendering it unsuitable for RL.",
+    "(3) The computational demands of the attention mechanism escalate quadratically with the input length, posing a significant constraint on its scalability."
+  ],
+  "mechanism": [
+    "(1) Introduction of a Transformer-like DeMa as opposed to an RNN-like DeMa for efficiency and effectiveness.",
+    "(2) Identification of the hidden attention mechanism as a critical factor in DeMa's success, which can also work well with other residual structures and does not require position embedding.",
+    "(3) Utilization of Mamba, a promising new linear-time sequence model, offering performance on par with transformers while delivering substantially fewer parameters on long sequences."
+  ],
+  "result": {
+    "datasets": [
+      "Atari",
+      "MuJoCo"
+    ],
+    "performance": {
+      "Atari": "DeMa surpasses Decision Transformer (DT) with higher performance while using 30% fewer parameters.",
+      "MuJoCo": "DeMa exceeds DT with only a quarter of the parameters."
+    }
+  }
+}

@@ -43,6 +43,16 @@ python download_openreview_papers.py \
 
 执行完成后，若存在匹配论文，会在输出目录生成 `references_<style>.txt`，其中包含对应格式的参考文献。
 
+## 使用 DeepSeek 总结论文
+
+`summarize_papers.py` 可以自动遍历指定目录下的 PDF，并调用 DeepSeek API 生成摘要。
+在运行脚本前，请通过环境变量提供 API 密钥：
+
+```bash
+export DEEPSEEK_API_KEY="your_api_key"
+python summarize_papers.py papers --out summaries
+```
+
 ## 更新日志
 - **v0.4** – 新增 `--style` 选项，可生成 GB/T 7714 或 IEEE 风格参考文献。
 - v0.3 – 支持 GB/T 7714 格式。

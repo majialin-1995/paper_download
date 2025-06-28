@@ -1,0 +1,21 @@
+{
+  "phenomenon": "Alignment is a procedure to fine-tune pre-trained large language models (LLMs) to follow natural language instructions and serve as helpful AI assistants. However, the conventional alignment process fails to enhance the factual accuracy of LLMs, and often leads to the generation of more false facts (i.e., hallucination).",
+  "problem": [
+    "(1) Training the LLM on new or unfamiliar knowledge can encourage hallucination. This makes supervised fine-tuning (SFT) less factual as it trains on human-labeled data that may be novel to the LLM.",
+    "(2) Reward functions used in standard reinforcement learning (RL) often inadequately capture factuality and favor longer and more detailed responses, which inadvertently promote hallucination."
+  ],
+  "mechanism": [
+    "(1) Factuality-aware supervised fine-tuning (SFT): For fact-based instructions, instead of using human created seed training data, we elicit knowledge from the pre-trained LLM and construct training data using its own pre-trained knowledge. This can prevent fine-tuning the LLM on knowledge unknown to itself.",
+    "(2) Factuality-aware reinforcement learning (RL) through direct preference optimization: We create additional preference pairs focused on factuality for fact-based instructions, which are combined with the standard preference pairs for instruction following during Direct Preference Optimization (DPO)."
+  ],
+  "result": {
+    "datasets": [
+      "Alpaca Eval",
+      "Biography"
+    ],
+    "performance": {
+      "Alpaca Eval": "51.2% win rate",
+      "Biography": "+5.6 pts in FACTSCORE compared to the standard alignment process (SFT + DPO)"
+    }
+  }
+}

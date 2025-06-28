@@ -1,0 +1,22 @@
+{
+  "phenomenon": "Multi-Reward Best Policy Identification (MR-BPI) problem in Reinforcement Learning (RL), where the goal is to determine the best policy for all rewards in a given set R with minimal sample complexity and a prescribed confidence level.",
+  "problem": [
+    "(1) Designing a reward function can require numerous iterations of reward engineering.",
+    "(2) The reward signal is not necessarily a scalar, and the agent may seek to optimize performance across a set of reward functions.",
+    "(3) The problem remains relatively unexplored in the current RL literature, with closely related settings being reward-free RL, unsupervised RL, and multi-objective RL, which do not directly address the multi-reward pure exploration problem."
+  ],
+  "mechanism": [
+    "(1) Deriving a fundamental instance-specific lower bound on the sample complexity required by any Probably Correct (PC) algorithm in this setting.",
+    "(2) Designing an optimal exploration policy attaining minimal sample complexity by solving a hard non-convex optimization problem, addressed by devising a convex approximation.",
+    "(3) Proposing MR-NaS, a PC algorithm with competitive performance on hard-exploration tabular environments, and extending this approach to Deep RL (DRL) with DBMR-BPI, an efficient algorithm for model-free exploration in multi-reward settings."
+  ],
+  "result": {
+    "datasets_environments": [
+      "Riverswim",
+      "Forked Riverswim",
+      "DoubleChain",
+      "NArms"
+    ],
+    "performance": "MR-NaS demonstrates efficiency in identifying optimal policies across various rewards and in generalizing to unseen rewards when the reward set is sufficiently diverse. DBMR-BPI shows competitive performance against state-of-the-art methods in unsupervised RL on challenging environments from the DeepMind BSuite and on link adaptation, a radio network control problem."
+  }
+}

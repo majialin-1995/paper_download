@@ -1,0 +1,34 @@
+{
+  "phenomenon": "Alignment of large language models (LLMs) during the pre-training phase, termed 'native alignment', to prevent unaligned content from the beginning rather than relying on post-hoc processing.",
+  "problem": {
+    "1": "Difficulty of collecting high-quality data for alignment.",
+    "2": "Lack of stability in the alignment process.",
+    "3": "Presence of offensive and toxic content in pre-training datasets leading to toxic degeneration in LLMs."
+  },
+  "mechanism": {
+    "1": "Introduction of 'native alignment' during the pre-training phase to enhance the effectiveness and usability of pre-trained models.",
+    "2": "Utilization of a data-centric alignment method focusing on Arabic language and culture, including data rewriting and training smaller LLMs on annotated alignment data pairs.",
+    "3": "Comprehensive experiments and ablation studies to evaluate the impact of native alignment on model performance and alignment stability."
+  },
+  "result": {
+    "dataset_environment": "Arabic benchmarks including ArabicMMLU, EXAMS, ACV A_clean, ACV A_all, and AraTrust.",
+    "performance": {
+      "LLaMA3-Tamed-8B": {
+        "ArabicMMLU": "50.17",
+        "EXAMS": "46.15",
+        "ACV A_clean": "80.17",
+        "ACV A_all": "78.37",
+        "AraTrust": "55.94",
+        "Avg": "62.14"
+      },
+      "LLaMA3-Tamed-70B": {
+        "ArabicMMLU": "66.56",
+        "EXAMS": "55.49",
+        "ACV A_clean": "82.58",
+        "ACV A_all": "81.36",
+        "AraTrust": "63.41",
+        "Avg": "69.88"
+      }
+    }
+  }
+}

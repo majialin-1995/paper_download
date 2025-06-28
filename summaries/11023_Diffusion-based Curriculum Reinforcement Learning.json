@@ -1,0 +1,29 @@
+{
+  "phenomenon": "基于扩散的课程强化学习（Diffusion-based Curriculum Reinforcement Learning, DiCuRL）利用条件扩散模型生成课程目标，通过结合Q函数和基于对抗内在动机（Adversarial Intrinsic Motivation, AIM）的可训练奖励函数，有效引导智能体在没有领域知识的情况下学习。",
+  "problem": [
+    "(1) 现有课程强化学习方法在缺乏领域知识时难以高效引导智能体达到期望结果。",
+    "(2) 在复杂环境中，现有方法难以生成合适的中间目标。",
+    "(3) 高维数据环境下，AIM奖励可能表现不佳，影响课程目标的生成。"
+  ],
+  "mechanism": [
+    "(1) 使用条件扩散模型动态生成课程目标，结合Q函数和AIM奖励函数，确保目标既具挑战性又可实现。",
+    "(2) 通过扩散模型固有的噪声和去噪机制促进探索。",
+    "(3) 采用最小成本最大流算法从扩散模型生成的课程目标集中选择最优目标。"
+  ],
+  "result": {
+    "datasets_environments": [
+      "PointUMaze",
+      "PointNMaze",
+      "PointSpiralMaze",
+      "FetchPush",
+      "FetchPickAndPlace"
+    ],
+    "performance": {
+      "PointUMaze": "28333 ± 3036 timesteps to reach success rate 1.0",
+      "PointNMaze": "108428 ± 34718 timesteps to reach success rate 1.0",
+      "PointSpiralMaze": "305833 ± 43225 timesteps to reach success rate 1.0",
+      "FetchPush": "Achieves higher success rate compared to HGG and HER",
+      "FetchPickAndPlace": "Achieves higher success rate compared to HGG and HER"
+    }
+  }
+}

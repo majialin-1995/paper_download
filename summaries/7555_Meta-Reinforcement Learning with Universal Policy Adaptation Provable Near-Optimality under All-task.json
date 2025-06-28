@@ -1,0 +1,16 @@
+{
+  "phenomenon": "Meta-reinforcement learning (Meta-RL) enhances reinforcement learning (RL) algorithms in terms of data efficiency and generalizability by learning a meta-prior for task-specific policy adaptation.",
+  "problem": [
+    "(1) The challenge of enhancing RL algorithms' data efficiency and generalizability through Meta-RL.",
+    "(2) The limitation of existing meta-RL analyses in providing upper bounds of the expected optimality gap over the task distribution.",
+    "(3) The need for a bilevel optimization framework for meta-RL (BO-MRL) that learns the meta-prior for task-specific policy adaptation with multiple-step policy optimization on one-time data collection."
+  ],
+  "mechanism": [
+    "(1) Development of a bilevel optimization framework for meta-RL (BO-MRL) to learn the meta-prior for task-specific policy adaptation.",
+    "(2) Implementation of multiple-step policy optimization on one-time data collection to improve data efficiency.",
+    "(3) Provision of upper bounds of the expected optimality gap over the task distribution to quantify the model's generalizability."
+  ],
+  "result": {
+    "dataset_environment": "The paper empirically validates the correctness of the derived upper bounds and demonstrates the superior effectiveness of the proposed algorithm over benchmarks, though specific dataset/environment names and performance numerical values are not detailed in the provided content."
+  }
+}
