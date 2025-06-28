@@ -1,16 +1,16 @@
 {
-  "phenomenon": "Meta-reinforcement learning (Meta-RL) enhances reinforcement learning (RL) algorithms in terms of data efficiency and generalizability by learning a meta-prior for task-specific policy adaptation.",
+  "phenomenon": "元强化学习（Meta-RL）通过学习任务适应的元先验，使得强化学习算法在数据效率和泛化能力上得到提升。",
   "problem": [
-    "(1) The challenge of enhancing RL algorithms' data efficiency and generalizability through Meta-RL.",
-    "(2) The limitation of existing meta-RL analyses in providing upper bounds of the expected optimality gap over the task distribution.",
-    "(3) The need for a bilevel optimization framework for meta-RL (BO-MRL) that learns the meta-prior for task-specific policy adaptation with multiple-step policy optimization on one-time data collection."
+    "(1) 如何利用Meta-RL提升强化学习算法的数据效率和泛化能力。",
+    "(2) 现有的Meta-RL分析只能给出任务分布上期望最优性差距的上界。",
+    "(3) 需要一个双层优化框架（BO-MRL），在一次性数据采集的基础上，通过多步策略优化学习任务适应的元先验。"
   ],
   "mechanism": [
-    "(1) Development of a bilevel optimization framework for meta-RL (BO-MRL) to learn the meta-prior for task-specific policy adaptation.",
-    "(2) Implementation of multiple-step policy optimization on one-time data collection to improve data efficiency.",
-    "(3) Provision of upper bounds of the expected optimality gap over the task distribution to quantify the model's generalizability."
+    "(1) 构建一个用于Meta-RL的双层优化框架（BO-MRL），学习任务特定策略适应的元先验。",
+    "(2) 在一次性数据采集上实施多步策略优化以提升数据效率。",
+    "(3) 提供任务分布上期望最优性差距的上界，从而量化模型的泛化能力。"
   ],
   "result": {
-    "dataset_environment": "The paper empirically validates the correctness of the derived upper bounds and demonstrates the superior effectiveness of the proposed algorithm over benchmarks, though specific dataset/environment names and performance numerical values are not detailed in the provided content."
+    "dataset_environment": "论文通过实证验证所推导上界的正确性，并展示所提算法相对于基线的优越性，但具体数据集/环境名称及数值未给出。"
   }
 }

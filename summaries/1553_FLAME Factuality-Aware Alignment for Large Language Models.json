@@ -1,12 +1,12 @@
 {
-  "phenomenon": "Alignment is a procedure to fine-tune pre-trained large language models (LLMs) to follow natural language instructions and serve as helpful AI assistants. However, the conventional alignment process fails to enhance the factual accuracy of LLMs, and often leads to the generation of more false facts (i.e., hallucination).",
+  "phenomenon": "对齐是针对预训练大型语言模型的微调过程，目的是让模型能够遵循自然语言指令并作为有用的助手。但传统的对齐流程无法提升LLM的事实准确度，反而容易产生更多虚假内容（即幻觉）。",
   "problem": [
-    "(1) Training the LLM on new or unfamiliar knowledge can encourage hallucination. This makes supervised fine-tuning (SFT) less factual as it trains on human-labeled data that may be novel to the LLM.",
-    "(2) Reward functions used in standard reinforcement learning (RL) often inadequately capture factuality and favor longer and more detailed responses, which inadvertently promote hallucination."
+    "(1) 在新的或陌生知识上训练LLM会促进幻觉生成，使得基于人工标注数据的监督微调缺乏事实性。",
+    "(2) 传统强化学习的奖励函数难以准确衡量事实性，并倾向于鼓励更长、更详细的回答，从而间接促进幻觉。"
   ],
   "mechanism": [
-    "(1) Factuality-aware supervised fine-tuning (SFT): For fact-based instructions, instead of using human created seed training data, we elicit knowledge from the pre-trained LLM and construct training data using its own pre-trained knowledge. This can prevent fine-tuning the LLM on knowledge unknown to itself.",
-    "(2) Factuality-aware reinforcement learning (RL) through direct preference optimization: We create additional preference pairs focused on factuality for fact-based instructions, which are combined with the standard preference pairs for instruction following during Direct Preference Optimization (DPO)."
+    "(1) 提出事实性感知的监督微调：对于基于事实的指令，不使用人工种子数据，而是从预训练模型中提取知识构造训练数据，避免在模型未知知识上微调。",
+    "(2) 通过直接偏好优化实现事实性感知的强化学习：为基于事实的指令额外构建关注事实性的偏好对，并与常规偏好对结合，在直接偏好优化阶段共同训练。"
   ],
   "result": {
     "datasets": [
@@ -14,8 +14,8 @@
       "Biography"
     ],
     "performance": {
-      "Alpaca Eval": "51.2% win rate",
-      "Biography": "+5.6 pts in FACTSCORE compared to the standard alignment process (SFT + DPO)"
+      "Alpaca Eval": "胜率51.2%",
+      "Biography": "相比标准对齐流程（SFT + DPO）提升FACTSCORE 5.6分"
     }
   }
 }

@@ -1,14 +1,14 @@
 {
-  "phenomenon": "Multi-Reward Best Policy Identification (MR-BPI) problem in Reinforcement Learning (RL), where the goal is to determine the best policy for all rewards in a given set R with minimal sample complexity and a prescribed confidence level.",
+  "phenomenon": "多奖励最佳策略识别（MR-BPI）问题旨在在给定奖励集合R下，以最小样本复杂度和预设置信度找出对所有奖励都最优的策略。",
   "problem": [
-    "(1) Designing a reward function can require numerous iterations of reward engineering.",
-    "(2) The reward signal is not necessarily a scalar, and the agent may seek to optimize performance across a set of reward functions.",
-    "(3) The problem remains relatively unexplored in the current RL literature, with closely related settings being reward-free RL, unsupervised RL, and multi-objective RL, which do not directly address the multi-reward pure exploration problem."
+    "(1) 设计奖励函数需要反复进行大量的奖励工程。",
+    "(2) 奖励信号不一定是标量，智能体可能需要在一组奖励函数上同时取得良好表现。",
+    "(3) 当前文献中对该问题研究较少，相关场景如无奖励强化学习、无监督强化学习和多目标强化学习等，均未直接解决多奖励纯探索问题。"
   ],
   "mechanism": [
-    "(1) Deriving a fundamental instance-specific lower bound on the sample complexity required by any Probably Correct (PC) algorithm in this setting.",
-    "(2) Designing an optimal exploration policy attaining minimal sample complexity by solving a hard non-convex optimization problem, addressed by devising a convex approximation.",
-    "(3) Proposing MR-NaS, a PC algorithm with competitive performance on hard-exploration tabular environments, and extending this approach to Deep RL (DRL) with DBMR-BPI, an efficient algorithm for model-free exploration in multi-reward settings."
+    "(1) 推导任何可能正确（PC）算法在此设定下样本复杂度的实例相关下界。",
+    "(2) 通过求解困难的非凸优化问题并设计凸近似，得到达到最小样本复杂度的最优探索策略。",
+    "(3) 提出MR-NaS算法，在困难的表格环境中表现竞争，并将该方法扩展到深度强化学习场景，提出DBMR-BPI实现无模型的多奖励探索。"
   ],
   "result": {
     "datasets_environments": [
@@ -17,6 +17,6 @@
       "DoubleChain",
       "NArms"
     ],
-    "performance": "MR-NaS demonstrates efficiency in identifying optimal policies across various rewards and in generalizing to unseen rewards when the reward set is sufficiently diverse. DBMR-BPI shows competitive performance against state-of-the-art methods in unsupervised RL on challenging environments from the DeepMind BSuite and on link adaptation, a radio network control problem."
+    "performance": "MR-NaS能高效识别各奖励下的最优策略，并在奖励集足够多样时泛化到未见的奖励。DBMR-BPI在DeepMind BSuite等具有挑战性的环境以及无线网络控制任务上与最先进方法竞争。"
   }
 }
