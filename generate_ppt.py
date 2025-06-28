@@ -58,22 +58,39 @@ def list_to_text(lst: list[str] | None) -> str:
     return "\n".join(str(x) for x in (lst or []))
 
 def result_to_text(result) -> str:
-    if result is None:
-        return ""
-    # if isinstance(result, list):
-    #     return "\n".join(str(x) for x in result)
-    # if isinstance(result, dict):
-    #     parts = []
-    #     datasets = result.get("datasets") or result.get("dataset_environment")
-    #     if datasets:
-    #         parts.append("数据集: " + ", ".join(datasets))
-    #     perf = result.get("performance")
-    #     if isinstance(perf, list):
-    #         parts.extend(str(x) for x in perf)
-    #     elif isinstance(perf, dict):
-    #         parts.extend(f"{k}: {v}" for k, v in perf.items())
-    #     return "\n".join(parts)
-    return str(result)
+    try:
+        if result is None:
+            return ""
+        if isinstance(result, dict):
+            # 获取实验环境信息，字段名称可能有所不同
+            env = (
+                result.get("datasets_environments")
+                or result.get("datasets")
+                or result.get("dataset_environment")
+            )
+            if isinstance(env, list):
+                env_text = "、".join(env)
+            else:
+                env_text = str(env) if env else ""
+
+            perf = result.get("performance")
+            if isinstance(perf, list):
+                perf_text = " ".join(str(x) for x in perf)
+            else:
+                perf_text = str(perf) if perf is not None else ""
+
+            parts = []
+            if env_text:
+                parts.append(f"实验中使用了{env_text}环境")
+            if perf_text:
+                parts.append(f"\n结果：{perf_text}")  # ← 改为换行
+            return "".join(parts)
+
+        return str(result)
+    except Exception:
+        return str(result)
+
+
 
 def fill_placeholders(slide, data: dict[str, Any], title: str, reference: str,
                       page: int, total: int, section: str, idx: int) -> None:
@@ -157,6 +174,17 @@ def main(argv: List[str] | None = None) -> None:
 
     prs.save(args.out)
     print(f"✔ 已保存: {args.out}")
+
+    # 额外生成 No. + Reference 的 txt 列表
+    ref_list_txt = []
+    for idx, jf in enumerate(json_files, 1):
+        title = jf.stem.split("_", 1)[1] if "_" in jf.stem else jf.stem
+        reference = find_reference(title, ref_lines)
+        ref_list_txt.append(f"[{idx}]. {reference}")
+
+    ref_output_path = args.out.with_name("references_list.txt")
+    ref_output_path.write_text("\n\n".join(ref_list_txt), encoding="utf-8")
+    print(f"✔ 已额外保存参考文献列表: {ref_output_path}")
 
 if __name__ == "__main__":
     main()

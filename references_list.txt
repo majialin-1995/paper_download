@@ -1,0 +1,79 @@
+[1]. Haowen Dou, Lujuan Dang, Zhirong Luan, and Badong Chen, "Measuring Mutual Policy Divergence for Multi-Agent Sequential Exploration," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-24.
+
+[2]. Shohei Taniguchi, Keno Harada, Gouki Minegishi, Yuta Oshima, Seong Cheol Jeong, Go Nagahara, Tomoshi Iiyama, Masahiro Suzuki, Yusuke Iwasawa, and Yutaka Matsuo, "ADOPT: Modified Adam Can Converge with Any $\beta_2$ with the Optimal Rate," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-37.
+
+[3]. Alessio Russo and Filippo Vannella, "Multi-Reward Best Policy Identification," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-80.
+
+[4]. Roland Stolz, Hanna Krasowski, Jakob Thumm, Michael Eichelbeck, Philipp Gassert, and Matthias Althoff, "Excluding the Irrelevant: Focusing Reinforcement Learning through Continuous Action Masking," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-28.
+
+[5]. Pietro Mazzaglia, Tim Verbelen, Bart Dhoedt, Aaron Courville, and Sai Rajeswar, "GenRL: Multimodal-foundation world models for generalization in embodied agents," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-27.
+
+[6]. Erdi Sayar, Giovanni Iacca, Ozgur S. Oguz, and Alois Knoll, "Diffusion-based Curriculum Reinforcement Learning," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-31.
+
+[7]. Arko Banerjee, Kia Rahmani, Joydeep Biswas, and Isil Dillig, "Dynamic Model Predictive Shielding for Provably Safe Reinforcement Learning," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-29.
+
+[8]. Zhaolin Gao, Jonathan Daniel Chang, Wenhao Zhan, Owen Oertell, Gokul Swamy, Kianté Brantley, Thorsten Joachims, J. Andrew Bagnell, Jason D. Lee, and Wen Sun, "REBEL: Reinforcement Learning via Regressing Relative Rewards," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-47.
+
+[9]. Haolin Liu, Artin Tajdini, Andrew Wagenmaker, and Chen-Yu Wei, "Corruption-Robust Linear Bandits: Minimax Optimality and Gap-Dependent Misspecification," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-49.
+
+[10]. Yuefei Lyu, Chaozhuo Li, Sihong Xie, and Xi Zhang, "Enhancing Robustness of Graph Neural Networks on Social Media with Explainable Inverse Reinforcement Learning," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-23.
+
+[11]. Heyang Zhao, Jiafan He, and Quanquan Gu, "A Nearly Optimal and Low-Switching Algorithm for Reinforcement Learning with General Function Approximation," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-52.
+
+[12]. Long-Fei Li, Yu-Jie Zhang, Peng Zhao, and Zhi-Hua Zhou, "Provably Efficient Reinforcement Learning with Multinomial Logit Function Approximation," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-35.
+
+[13]. 
+
+[14]. Yancheng Liang, Daphne Chen, Abhishek Gupta, Simon Shaolei Du, and Natasha Jaques, "Learning to Cooperate with Humans using Generative Agents," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-27.
+
+[15]. Rui Yang, Jie Wang, Guoping Wu, and Bin Li, "Uncertainty-based Offline Variational Bayesian Reinforcement Learning for Robustness under Diverse Data Corruptions," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-36.
+
+[16]. Fan-Ming Luo, Zuolin Tu, Zefang Huang, and Yang Yu, "Efficient Recurrent Off-Policy RL Requires a Context-Encoder-Specific Learning Rate," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-35.
+
+[17]. Juhao Liang, Zhenyang Cai, Jianqing Zhu, Huang Huang, Kewei Zong, Bang An, Mosen Alharthi, Juncai He, Lian Zhang, Haizhou Li, Benyou Wang, and Jinchao Xu, "Alignment at Pre-training! Towards Native Alignment for Arabic LLMs," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-25.
+
+[18]. Ge Gao, Xi Yang, Qitong Gao, Song Ju, Miroslav Pajic, and Min Chi, "Off-Policy Selection for Initiating Human-Centric Experimental Design," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-34.
+
+[19]. Mengxi Zhang, Wenhao Wu, Yu Lu, YuXin Song, KANG RONG, Huanjin Yao, Jianbo Zhao, Fanglong Liu, Haocheng Feng, Jingdong Wang, and Yifan Sun, "Automated Multi-level Preference for MLLMs," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-24.
+
+[20]. QING XU, Min Wu, Xiaoli Li, Kezhi Mao, and Zhenghua Chen, "Reinforced Cross-Domain Knowledge Distillation on Time Series Data," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-25.
+
+[21]. Nadav Merlis, "Reinforcement Learning with Lookahead Information," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-59.
+
+[22]. Fan-Yun Sun, Harini S I, Angela Yi, Yihan Zhou, Alex Zook, Jonathan Tremblay, Logan Cross, Jiajun Wu, and Nick Haber, "FactorSim: Generative Simulation via Factorized Representation," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-35.
+
+[23]. Qi Wang, Junming Yang, Yunbo Wang, Xin Jin, Wenjun Zeng, and Xiaokang Yang, "Making Offline RL Online: Collaborative World Models for Offline Visual Reinforcement Learning," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-28.
+
+[24]. Lior Shani, Aviv Rosenberg, Asaf Cassel, Oran Lang, Daniele Calandriello, Avital Zipori, Hila Noga, Orgad Keller, Bilal Piot, Idan Szpektor, Avinatan Hassidim, Yossi Matias, and Remi Munos, "Multi-turn Reinforcement Learning with Preference Human Feedback," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-41.
+
+[25]. 
+
+[26]. Udaya Ghai and Karan Singh, "Sample-Efficient Agnostic Boosting," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-33.
+
+[27]. Jing-Cheng Pang, Si-Hang Yang, Kaiyuan Li, Jiaji Zhang, Xiong-Hui Chen, Nan Tang, and Yang Yu, "KALM: Knowledgeable Agents by Offline Reinforcement Learning from Large Language Model Rollouts," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-33.
+
+[28]. Sili Huang, Jifeng Hu, Zhejian Yang, Liwei Yang, Tao Luo, Hechang Chen, Lichao Sun, and Bo Yang, "Decision Mamba: Reinforcement Learning via Hybrid Selective Sequence Modeling," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-22.
+
+[29]. Tianjiao Luo, Tim Pearce, Huayu Chen, Jianfei Chen, and Jun Zhu, "C-GAIL: Stabilizing Generative Adversarial Imitation Learning with Control Theory," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-25.
+
+[30]. Miaosen Zhang, Yuxing Wei, Zhen Xing, Yifei Ma, Zuxuan Wu, Ji Li, Zheng Zhang, Qi Dai, Chong Luo, Xin Geng, and Baining Guo, "Aligning Vision Models with Human Aesthetics in Retrieval: Benchmarks and Algorithms," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-36.
+
+[31]. Luke Marks, Amir Abdullah, Clement Neo, Rauno Arike, David Krueger, Philip Torr, and Fazl Barez, "Interpreting Learned Feedback Patterns in Large Language Models," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-26.
+
+[32]. Ryan Greenblatt, Fabien Roger, Dmitrii Krasheninnikov, and David Krueger, "Stress-Testing Capability Elicitation With Password-Locked Models," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-32.
+
+[33]. Xiaomeng Hu, Pin-Yu Chen, and Tsung-Yi Ho, "Gradient Cuff: Detecting Jailbreak Attacks on Large Language Models by Exploring Refusal Loss Landscapes," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-32.
+
+[34]. Zechu Li, Rickmer Krohn, Tao Chen, Anurag Ajay, Pulkit Agrawal, and Georgia Chalvatzaki, "Learning Multimodal Behaviors from Scratch with Diffusion Policy Gradient," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-24.
+
+[35]. Siyuan Xu and Minghui Zhu, "Meta-Reinforcement Learning with Universal Policy Adaptation: Provable Near-Optimality under All-task Optimum Comparator," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-50.
+
+[36]. Chi-Chang Lee, Zhang-Wei Hong, and Pulkit Agrawal, "Going Beyond Heuristics by Imposing Policy Improvement as a Constraint," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-56.
+
+[37]. Desik Rengarajan, Nitin Ragothaman, Dileep Kalathil, and Srinivas Shakkottai, "Federated Ensemble-Directed Offline Reinforcement Learning," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-26.
+
+[38]. Yang Dai, Oubo Ma, Longfei Zhang, Xingxing Liang, Shengchao Hu, Mengzhu Wang, Shouling Ji, Jincai Huang, and Li Shen, "Is Mamba Compatible with Trajectory Optimization in Offline Reinforcement Learning?," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-29.
+
+[39]. Di Zhang, Bowen Lv, Hai Zhang, Feifan Yang, Junqiao Zhao, Hang Yu, Chang Huang, Hongtu Zhou, Chen Ye, and changjun jiang, "Focus On What Matters: Separated Models For Visual-Based RL Generalization," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-27.
+
+[40]. Fanqi Kong, Yizhe Huang, Song-Chun Zhu, Siyuan Qi, and Xue Feng, "Learning to Balance Altruism and Self-interest Based on Empathy in Mixed-Motive Games," in Proceedings of the Conference on Neural Information Processing Systems (NeurIPS), 2024, pp. 1-24.
