@@ -1,0 +1,6 @@
+openreview-py
+pypdf
+tqdm
+openai
+tiktoken
+python-pptx
