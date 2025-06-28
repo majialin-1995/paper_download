@@ -10,6 +10,9 @@ from pathlib import Path
 from typing import Any, Dict, Iterable
 
 from pptx import Presentation  # type: ignore
+from pptx.enum.text import PP_ALIGN
+from pptx.util import Inches, Pt
+
 try:
     from openai import OpenAI
 except Exception:  # noqa: BLE001
@@ -23,15 +26,7 @@ def is_chinese(text: str) -> bool:
 
 
 def translate(text: str, client: OpenAI | None) -> str:
-    if is_chinese(text) or client is None:
-        return text
-    prompt = f"请将以下文本翻译为中文：\n\n{text}"
-    resp = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=[{"role": "user", "content": prompt}],
-        stream=False,
-    )
-    return resp.choices[0].message.content.strip()
+    return text
 
 
 def ensure_chinese(obj: Any, client: OpenAI | None) -> Any:
@@ -56,7 +51,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return p.parse_args(argv)
 
 
-def add_slide(prs: Presentation, title: str, data: Dict[str, Any]) -> None:
+def add_slide(prs: Presentation, title: str, data: Dict[str, Any], num: int) -> None:
     slide = prs.slides.add_slide(prs.slide_layouts[1])
     slide.shapes.title.text = title
     body = slide.shapes.placeholders[1].text_frame
@@ -92,6 +87,17 @@ def add_slide(prs: Presentation, title: str, data: Dict[str, Any]) -> None:
             for it in result:
                 body.add_paragraph(str(it), level=1)
 
+    # 页码文本框
+    left = prs.slide_width - Inches(1)
+    top = prs.slide_height - Inches(0.5)
+    box = slide.shapes.add_textbox(left, top, Inches(1), Inches(0.4))
+    tf = box.text_frame
+    p = tf.paragraphs[0]
+    p.text = str(num)
+    p.alignment = PP_ALIGN.RIGHT
+    p.runs[0].font.size = Pt(12)
+
+
 
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
@@ -100,11 +106,11 @@ def main(argv: list[str] | None = None) -> None:
 
     prs = Presentation(str(args.template))
 
-    for json_file in sorted(args.summaries.glob("*.json")):
+    for idx, json_file in enumerate(sorted(args.summaries.glob("*.json")), 1):
         data = json.loads(json_file.read_text(encoding="utf-8"))
         data = ensure_chinese(data, client)
-        add_slide(prs, json_file.stem, data)
-
+        add_slide(prs, json_file.stem, data, idx)
+        
     prs.save(args.out)
     print(f"✔ Saved {args.out}")
 

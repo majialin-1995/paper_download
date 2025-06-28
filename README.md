@@ -61,9 +61,8 @@ python summarize_papers.py papers --out summaries
 
 ## 根据摘要生成 PPT
 
-`generate_ppt.py` 通过读取 `summaries` 目录下的 JSON 文件，自动将摘要内容填充到 `template.pptx` 模板中，生成适合汇报的幻灯片。若摘要并非中文，脚本会调用 DeepSeek 进行翻译。
+`generate_ppt.py` 会读取 `summaries` 目录下的 JSON 文件，将摘要内容直接填入 `template.pptx` 模板，并在每张幻灯片右下角自动添加页码。
 
 ```bash
-export DEEPSEEK_API_KEY="your_api_key"  # 只有需要翻译时才必需
 python generate_ppt.py summaries --out slides.pptx
 ```
