@@ -1,0 +1,14 @@
+# Ignore run directories and other untracked files
+runs/
+run/
+__pycache__/
+*.pyc
+
+# Optional: ignore virtual environment directories
+venv/
+ENV/
+.env
+
+# Editor directories and files
+.vscode/
+.idea/
