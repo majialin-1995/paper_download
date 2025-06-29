@@ -140,14 +140,17 @@ def main(argv: List[str] | None = None) -> None:
     p.add_argument("path", type=Path, help="包含 PDF 的目录")
     p.add_argument("--api-key", dest="api_key",
                    help="DeepSeek API key；若省略读取 DEEPSEEK_API_KEY 环境变量")
-    p.add_argument("--out", type=Path, default=Path("summaries"),
-                   help="JSON 输出目录，默认 ./summaries")
+    p.add_argument("--out", type=Path, default=None,
+                   help="JSON 输出目录，默认 <path>/summaries")
     args = p.parse_args(argv)
 
     api_key = args.api_key or os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
         p.error("必须提供 DeepSeek API key (--api-key 或环境变量 )")
     client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+
+    if args.out is None:
+        args.out = args.path.parent / "summaries"
 
     pdfs = sorted(args.path.rglob("*.pdf"))
     if not pdfs:
@@ -171,6 +174,8 @@ def main(argv: List[str] | None = None) -> None:
         out_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2),
                             encoding="utf-8")
         tqdm.write(f"✅ {pdf.stem}.json 已保存")
+
+    print(f"✔ 摘要已保存至 {args.out}")
 
 if __name__ == "__main__":  # pragma: no cover
     main()
