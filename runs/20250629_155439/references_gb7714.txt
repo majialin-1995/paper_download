@@ -1,0 +1,5 @@
+[1] Christian Fabian; Kai Cui; Heinz Koeppl. Learning Mean Field Games on Sparse Graphs: A Hybrid Graphex Approach[C]. International Conference on Learning Representations (ICLR), 2023, pp. 1-39.
+[2] Yucheng Yang; Tianyi Zhou; Qiang He, et al.. Task Adaptation from Skills: Information Geometry, Disentanglement, and New Objectives for Unsupervised Reinforcement Learning[C]. International Conference on Learning Representations (ICLR), 2023, pp. 1-36.
+[3] Simin Li; Jun Guo; Jingqiao Xiu, et al.. Byzantine Robust Cooperative Multi-Agent Reinforcement Learning as a Bayesian Game[C]. International Conference on Learning Representations (ICLR), 2023, pp. 1-27.
+[4] Matt Barnes; Matthew Abueg; Oliver F. Lange, et al.. Massively Scalable Inverse Reinforcement Learning in Google Maps[C]. International Conference on Learning Representations (ICLR), 2023, pp. 1-22.
+[5] Peizhong Ju; Arnob Ghosh; Ness Shroff. Achieving Fairness in Multi-Agent MDP Using Reinforcement Learning[C]. International Conference on Learning Representations (ICLR), 2023, pp. 1-34.
