@@ -55,7 +55,7 @@ def parse_args(argv: List[str] | None = None) -> argparse.Namespace:
                    help="Base directory for search runs")
     p.add_argument("--run-name", dest="run_name",
                    help="Subdirectory name under --out; default timestamp")
-    p.add_argument("--style", choices=["gb7714", "ieee", "ris"], default="gb7714",
+    p.add_argument("--style", choices=["gb7714", "ieee"], default="gb7714",
                    help="Which *extra* textual list to generate in addition to .bib & .ris.")
     p.add_argument("--max", type=int, default=None, help="Download at most N papers.")
     p.add_argument("--include-submitted", action="store_true",
@@ -243,7 +243,6 @@ def main(argv: List[str] | None = None):
     # txt-formatter 由 --style 决定
     txt_formatter = {
         "ieee": ieee_reference,
-        "ris": lambda n, i, p: "",      # 若 --style=ris 不再生成 txt
         "gb7714": gb7714_reference,
     }[args.style]
 
@@ -290,9 +289,8 @@ def main(argv: List[str] | None = None):
                 bib_refs.append(bib_reference(note, pages))
                 ris_refs.append(ris_reference(note, len(ris_refs) + 1, pages))
 
-                # 可选的 txt-style
-                if args.style != "ris":
-                    txt_refs.append(txt_formatter(note, len(txt_refs) + 1, pages))
+                # 文本格式的参考文献
+                txt_refs.append(txt_formatter(note, len(txt_refs) + 1, pages))
 
             if args.max is not None and downloaded >= args.max:
                 break
