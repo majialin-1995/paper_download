@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as _dt
+import json
 import os
 import re
 import sys
@@ -35,10 +36,14 @@ def parse_args(argv: List[str] | None = None) -> argparse.Namespace:
         description="Download OpenReview PDFs (accepted by default) and output reference list.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    p.add_argument("--query", required=True, help="Keyword (regex, case-insensitive) to match.")
+    p.add_argument("--query", required=True,
+                   help="Keyword (regex, case-insensitive) to match.")
     p.add_argument("--venues", nargs="+", required=True, metavar="VENUE_ID",
                    help="One or more OpenReview venue IDs, e.g. ICLR.cc/2025/Conference")
-    p.add_argument("--out", type=Path, default=Path("papers"), help="Directory to save PDFs.")
+    p.add_argument("--out", type=Path, default=Path("runs"),
+                   help="Base directory for search runs")
+    p.add_argument("--run-name", dest="run_name",
+                   help="Subdirectory name under --out; default timestamp")
     p.add_argument("--style", choices=["gb7714", "ieee"], default="gb7714",
                    help="Reference style to output.")
     p.add_argument("--max", type=int, default=None, help="Download at most N papers.")
@@ -181,6 +186,21 @@ def main(argv: List[str] | None = None):
     regex = re.compile(args.query, re.IGNORECASE)
     formatter = ieee_reference if args.style == "ieee" else gb7714_reference
 
+    run_name = args.run_name or _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_dir = args.out / run_name
+    pdf_root = run_dir / "papers"
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    meta = {
+        "query": args.query,
+        "venues": args.venues,
+        "timestamp": run_name,
+        "style": args.style,
+    }
+    (run_dir / "meta.json").write_text(
+        json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
     references: List[str] = []
     downloaded = 0
 
@@ -199,7 +219,7 @@ def main(argv: List[str] | None = None):
                 continue
 
             filename = safe_filename(note.content["title"]["value"], note.number)
-            pdf_path = args.out / venue.replace("/", "_") / filename
+            pdf_path = pdf_root / venue.replace("/", "_") / filename
 
             # download (or skip if already there) …
             if pdf_path.exists() or download_pdf(client, note, pdf_path):
@@ -208,14 +228,13 @@ def main(argv: List[str] | None = None):
                 references.append(formatter(note, len(references) + 1, pages))
 
     if references:
-        ref_file = args.out / f"references_{args.style}.txt"
-        ref_file.parent.mkdir(parents=True, exist_ok=True)
+        ref_file = run_dir / f"references_{args.style}.txt"
         ref_file.write_text("\n".join(references), encoding="utf-8")
         print(f"\n✔ Saved {len(references)} references to {ref_file}")
     else:
         print("\nNo matching papers; no reference list generated.")
 
-    print("Finished!", downloaded, "PDF(s) total.")
+    print("Finished!", downloaded, "PDF(s) total. Run directory:", run_dir)
 
 
 if __name__ == "__main__":
