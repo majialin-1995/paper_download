@@ -149,7 +149,7 @@ def gb7714_reference(note, idx: int, pages: str) -> str:
     venue = expand_venue_name(info.get("venue", {}).get("value") or
                               info.get("venueid", {}).get("value") or "")
     year = info.get("year", {}).get("value") if "year" in info \
-        else _dt.datetime.fromtimestamp(note.cdate / 1000).year
+        else _dt.datetime.fromtimestamp(note.cdate / 1000).year+1
     pub_type = "[C]" if "Conference" in venue or "Proceedings" in venue else "[J]"
     pp = f", pp. {pages}" if pages and pages != "n/a" else ""
     return f"[{idx}] {authors}. {title}{pub_type}. {venue}, {year}{pp}."
@@ -163,7 +163,7 @@ def ieee_reference(note, idx: int, pages: str) -> str:
     venue_str = venue_full if venue_full.lower().startswith("in ") \
         else f"in Proceedings of the {venue_full}"
     year = info.get("year", {}).get("value") if "year" in info \
-        else _dt.datetime.fromtimestamp(note.cdate / 1000).year
+        else _dt.datetime.fromtimestamp(note.cdate / 1000).year+1
     pp = f", pp. {pages}" if pages and pages != "n/a" else ""
     return f"{authors}, \"{title},\" {venue_str}, {year}{pp}."
 
@@ -175,7 +175,7 @@ def ris_reference(note, idx: int, pages: str) -> str:
     venue = expand_venue_name(info.get("venue", {}).get("value") or
                               info.get("venueid", {}).get("value") or "")
     year = info.get("year", {}).get("value") if "year" in info \
-        else _dt.datetime.fromtimestamp(note.cdate / 1000).year
+        else _dt.datetime.fromtimestamp(note.cdate / 1000).year+1
     url = f"https://openreview.net/forum?id={note.id}"
     ty = "CONF" if "Conference" in venue or "Proceedings" in venue else "JOUR"
 
@@ -216,7 +216,7 @@ def bib_reference(note, pages: str) -> str:
     venue = expand_venue_name(info.get("venue", {}).get("value") or
                               info.get("venueid", {}).get("value") or "")
     year = info.get("year", {}).get("value") if "year" in info \
-        else _dt.datetime.fromtimestamp(note.cdate / 1000).year
+        else _dt.datetime.fromtimestamp(note.cdate / 1000).year+1
     url = f"https://openreview.net/forum?id={note.id}"
     key = re.sub(r"\W+", "", authors.split(" ")[-1] + str(year))
     lines = [
