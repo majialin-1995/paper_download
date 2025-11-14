@@ -31,15 +31,23 @@ def parse_args(argv: List[str] | None = None) -> argparse.Namespace:
         "--out", type=Path, default=Path("slides.pptx"),
         help="输出 PPT 文件名"
     )
+    # 这里先设为 None，后面解析完再动态指定默认路径
     p.add_argument(
-        "--refs", type=Path, default=Path("papers/references_ieee.txt"),
-        help="参考文献文本（每行一条）"
+        "--refs", type=Path, default=None,
+        help="参考文献文本（每行一条）。默认：summaries 上级目录的 references_ieee.txt"
     )
     p.add_argument(
         "--print-info", action="store_true",
         help="仅打印摘要信息，不生成 PPT"
     )
-    return p.parse_args(argv)
+
+    args = p.parse_args(argv)
+
+    # 动态设置默认 refs
+    if args.refs is None:
+        args.refs = args.summaries.parent / "references_ieee.txt"
+
+    return args
 
 
 # ─────────────────────── 工具函数 ─────────────────────── #
@@ -113,7 +121,7 @@ def fill_placeholders(
         "{{Pages}}":      f"{page} / {total_pages}",
         "{{totalpages}}": str(total_pages),
     }
-
+    
     if section == "intro":
         mapping["{{phenomenon}}"] = plain_text(phenomenon)   # 现象不编号
         mapping["{{problems}}"]   = indexed_text(problems)    # 编号 ①②③
@@ -174,7 +182,7 @@ def main(argv: List[str] | None = None) -> None:
 
     if not all([base_title, base_intro, base_conclusion]):
         raise SystemExit("❌ 模板缺失 title/intro/conclusion 的任意一页")
-
+    
     ref_lines = args.refs.read_text(encoding="utf-8").splitlines() if args.refs.is_file() else []
 
     template_slide_count = len(prs.slides)
