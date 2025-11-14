@@ -9,6 +9,7 @@ import argparse
 import copy
 import json
 import re
+import shutil
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -90,6 +91,42 @@ def plain_text(lst: List[Any] | None) -> str:
     if not lst:
         return ""
     return "\n".join(str(x) for x in lst)
+
+
+def copy_pdf_for_json(
+    idx: int,
+    jf: Path,
+    data: Dict[str, Any],
+    out_dir: Path,
+) -> None:
+    """
+    从 data['pdf_path'] 拿到原始 PDF 路径，复制到 out_dir 下，
+    文件名加上编号前缀，例如 001_xxx.pdf。
+    """
+    pdf_path = data.get("pdf_path")
+    if not pdf_path:
+        print(f"⚠ JSON {jf.name} 未包含 pdf_path 字段，跳过复制")
+        return
+
+    src = Path(pdf_path)
+    # 相对路径相对于 summaries 目录
+    if not src.is_absolute():
+        src = jf.parent / src
+
+    if not src.is_file():
+        print(f"⚠ 未找到对应 PDF（按 pdf_path）：{pdf_path}")
+        return
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    dst_name = f"[{idx:02d}]_{src.name}"
+    dst = out_dir / dst_name
+
+    try:
+        shutil.copy2(src, dst)
+        # 可选：打印一下
+        print(f"✔ 复制 PDF: {src} -> {dst}")
+    except Exception as e:
+        print(f"⚠ 复制 PDF 失败（{src} -> {dst}）：{e}")
 
 
 # ─────────────────────── 占位符填充 ─────────────────────── #
@@ -185,6 +222,9 @@ def main(argv: List[str] | None = None) -> None:
 
     used_refs: List[str] = []
 
+    # 所有 PDF 最终集中复制到这里
+    pdf_out_dir = args.summaries.parent / "pdf_with_idx"
+
     # 只打印摘要信息
     if args.print_info:
         for i, jf in enumerate(json_files, 1):
@@ -193,6 +233,9 @@ def main(argv: List[str] | None = None) -> None:
             ref = find_reference(title, all_refs)
             if ref:
                 used_refs.append(ref)
+
+            # 复制 PDF（带编号）
+            copy_pdf_for_json(i, jf, data, pdf_out_dir)
 
             print(f"{i}. {title}")
             print(ref)
@@ -230,6 +273,9 @@ def main(argv: List[str] | None = None) -> None:
         ref = find_reference(title, all_refs)
         if ref:
             used_refs.append(ref)
+
+        # 复制 PDF（带编号）
+        copy_pdf_for_json(idx, jf, data, pdf_out_dir)
 
         page1 = template_slide_count + extra * (idx - 1) + 1
         page2 = page1 + 1
