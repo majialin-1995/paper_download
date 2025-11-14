@@ -1,21 +1,15 @@
 #!/usr/bin/env python3
 """
-download_openreview_papers.py  (v0.9 — 2025-11-14)
+download_openreview_papers.py  (v0.10 — 2025-11-14)
 
 下载 *已正式发表* 的 OpenReview 论文 PDF，
 生成 **BibTeX + RIS + 文本清单 (ieee / gb7714-2015 / ris)**。
 
-与 v0.8 的差异：
-- 不再对每个 venue 全量 get_all_notes 然后本地 regex 过滤；
-- 改为使用 OpenReview 的 search_notes（Elasticsearch）在服务器端先按关键词检索，
-  再在本地做轻量筛选，从而减少网络请求和数据量。
-
-用法示例
---------
-python download_openreview_papers.py \
-    --query "offline reinforcement learning" \
-    --venues ICLR.cc/2025/Conference NeurIPS.cc/2025/Conference \
-    --out runs --style ieee --max 40
+与 v0.8 的主要差异：
+- 使用 OpenReview 的 search_notes（Elasticsearch）在服务器端按关键词检索，
+  不再对每个 venue 全量 get_all_notes；
+- 保留本地 regex 二次筛选（兼容你原来的用法）；
+- 增加了详细日志：每次保存 PDF / 引用时都会打印绝对路径，方便排查。
 """
 from __future__ import annotations
 
@@ -106,6 +100,7 @@ def connect_client() -> "openreview.api.OpenReviewClient":
     password = os.getenv("OPENREVIEW_PASSWORD")
     if not (username and password):
         sys.exit("Error: please set OPENREVIEW_USERNAME & OPENREVIEW_PASSWORD env vars.")
+    print(f"[info] Using OpenReview account: {username}")
     return openreview.api.OpenReviewClient(
         baseurl=API_BASE_URL, username=username, password=password
     )
@@ -133,6 +128,7 @@ def download_pdf(client, note, dest: Path) -> bool:
         return False
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(data)
+    print(f"[save] PDF saved to: {dest.resolve()}")
     return True
 
 def extract_pages(info: dict, pdf_path: Path | None = None) -> str:
@@ -166,18 +162,10 @@ def search_notes_in_venue(
 ):
     """
     使用 Elasticsearch search_notes 在服务器端按关键词 + group 检索。
-
-    - term: 关键字字符串（来自 --query）。
-    - venue_id: 例如 'ICLR.cc/2025/Conference'，作为 group 限定范围。
-    - include_submitted=False: 仅保留 content['venueid'] == venue_id 的 note，
-      即“已正式发表”的论文。
-    - include_submitted=True: 不再限定 venueid，保留该 group 范围下所有匹配 term 的 note。
-    - limit: 在该 venue 内最多返回多少条（用于配合全局 --max）。
     """
     fetched = 0
     offset = 0
-    # search_notes 的单次 limit 最大 1000；这里安全起见控制一下
-    MAX_BATCH = 1000
+    MAX_BATCH = 1000  # search_notes 单次最多 1000 条
 
     while True:
         if limit is not None:
@@ -209,8 +197,8 @@ def search_notes_in_venue(
                 if venueid != venue_id:
                     continue
 
-            yield note
             fetched += 1
+            yield note
             if limit is not None and fetched >= limit:
                 return
 
@@ -329,7 +317,11 @@ def bib_reference(note, pages: str) -> str:
     else:
         year = _dt.datetime.fromtimestamp(note.cdate / 1000).year + 1
     url = f"https://openreview.net/forum?id={note.id}"
-    key = re.sub(r"\W+", "", (authors.split(" ")[-1] if authors else "paper") + str(year))
+    key = re.sub(
+        r"\W+",
+        "",
+        (authors.split(" ")[-1] if authors else "paper") + str(year),
+    )
     lines = [
         f"@inproceedings{{{key},",
         f"  title     = {{{title}}},",
@@ -358,9 +350,11 @@ def main(argv: List[str] | None = None):
     }[args.style]
 
     run_name = args.run_name or _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_dir = args.out / run_name
+    run_dir = (args.out / run_name).resolve()
     pdf_root = run_dir / "papers"
     run_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"[info] Run directory: {run_dir}")
 
     (run_dir / "meta.json").write_text(
         json.dumps(
@@ -375,6 +369,7 @@ def main(argv: List[str] | None = None):
         ),
         encoding="utf-8",
     )
+    print(f"[save] meta.json written to: {(run_dir / 'meta.json').resolve()}")
 
     txt_refs: List[str] = []
     bib_refs: List[str] = []
@@ -404,7 +399,7 @@ def main(argv: List[str] | None = None):
             print(f"[error] Cannot search {venue}: {e}")
             continue
 
-        for note in tqdm(notes_iter, unit="paper"):
+        for note in tqdm(list(notes_iter), unit="paper"):
             if args.max is not None and downloaded >= args.max:
                 break
 
@@ -421,28 +416,39 @@ def main(argv: List[str] | None = None):
                 downloaded += 1
                 pages = extract_pages(note.content, pdf_path)
 
-                # BibTeX & RIS（始终生成）
-                bib_refs.append(bib_reference(note, pages))
-                ris_refs.append(ris_reference(note, len(ris_refs) + 1, pages))
+                bib_entry = bib_reference(note, pages)
+                ris_entry = ris_reference(note, len(ris_refs) + 1, pages)
+                txt_entry = txt_formatter(note, len(txt_refs) + 1, pages)
 
-                # 文本格式的参考文献
-                txt_refs.append(txt_formatter(note, len(txt_refs) + 1, pages))
+                bib_refs.append(bib_entry)
+                ris_refs.append(ris_entry)
+                txt_refs.append(txt_entry)
+
+                print(f"[ref] Added entry #{len(bib_refs)} for note {note.id}")
+            else:
+                print(f"[warn] Skip note {note.id} because PDF not available.")
 
             if args.max is not None and downloaded >= args.max:
                 break
 
     # ───────────── 文件写出 ───────────────────────────────────────────────
     if bib_refs:
+        bib_path = (run_dir / "references.bib").resolve()
         (run_dir / "references.bib").write_text(
             "\n\n".join(bib_refs), encoding="utf-8"
         )
+        print(f"[save] BibTeX written to: {bib_path}")
     if ris_refs:
+        ris_path = (run_dir / "references.ris").resolve()
         (run_dir / "references.ris").write_text(
             "\n\n".join(ris_refs), encoding="utf-8"
         )
+        print(f"[save] RIS written to: {ris_path}")
     if txt_refs:
         fname = f"references_{args.style}.txt"
+        txt_path = (run_dir / fname).resolve()
         (run_dir / fname).write_text("\n".join(txt_refs), encoding="utf-8")
+        print(f"[save] Text refs written to: {txt_path}")
 
     if any([bib_refs, ris_refs, txt_refs]):
         print(
