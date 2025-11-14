@@ -149,7 +149,7 @@ _PROMPT_HEADER = """
 phenomenon / problem / mechanism / result。
 
 【字段含义】
-- phenomenon:  论文中讨论的关键“现象”，一条独立、完整的中文描述。
+- phenomenon:  论文中讨论的关键“现象”，一段独立、完整的中文描述。
 - problem:     针对现象或相关背景引出的2~3个最关键的“问题 / 挑战”，为问题列表。
 - mechanism:   论文提出的主要“机制 / 方法 / 模型设计”，为机制列表（与问题列表一一对应）。
 - result:      实验结果与性能表现，每个元素必须：
@@ -160,7 +160,7 @@ phenomenon / problem / mechanism / result。
 【格式要求（非常重要）】
 1. 你必须输出一个 JSON 对象，形如：
    {
-     "phenomenon": ["...", "..."],
+     "phenomenon": "",
      "problem": ["...", "..."],
      "mechanism": ["...", "..."],
      "result": ["...", "..."]
@@ -279,8 +279,14 @@ def main(argv: List[str] | None = None) -> None:
             continue
 
         out_path = out_dir / f"{pdf.stem}.json"
+
+        # === 这里加上 PDF 文件的路径 ===
+        data = summary.model_dump()
+        # 绝对路径，如果你想用相对路径，可以改成 str(pdf)
+        data["pdf_path"] = str(pdf.resolve())
+
         out_path.write_text(
-            json.dumps(summary.model_dump(), ensure_ascii=False, indent=2),
+            json.dumps(data, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
         tqdm.write(f"✔ {pdf.stem}.json 已保存")
