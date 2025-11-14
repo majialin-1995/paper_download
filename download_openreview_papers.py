@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """
-download_openreview_papers.py  (v0.8 — 2025-06-29)
+download_openreview_papers.py  (v0.9 — 2025-11-14)
 
 下载 *已正式发表* 的 OpenReview 论文 PDF，
 生成 **BibTeX + RIS + 文本清单 (ieee / gb7714-2015 / ris)**。
+
+与 v0.8 的差异：
+- 不再对每个 venue 全量 get_all_notes 然后本地 regex 过滤；
+- 改为使用 OpenReview 的 search_notes（Elasticsearch）在服务器端先按关键词检索，
+  再在本地做轻量筛选，从而减少网络请求和数据量。
 
 用法示例
 --------
 python download_openreview_papers.py \
     --query "offline reinforcement learning" \
-    --venues ICLR.cc/2025/Conference NeurIPS.cc/2024/Conference \
+    --venues ICLR.cc/2025/Conference NeurIPS.cc/2025/Conference \
     --out runs --style ieee --max 40
 """
 from __future__ import annotations
@@ -44,22 +49,55 @@ VENUE_MAP: Dict[str, str] = {
 # ────────────────────────────── CLI ─────────────────────────────────────────
 def parse_args(argv: List[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="Download OpenReview PDFs (accepted by default) and output reference list.",
+        description=(
+            "Download OpenReview PDFs (accepted by default, via server-side search_notes) "
+            "and output reference list."
+        ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    p.add_argument("--query", required=True,
-                   help="Keyword (regex, case-insensitive) to match.")
-    p.add_argument("--venues", nargs="+", required=True, metavar="VENUE_ID",
-                   help="One or more OpenReview venue IDs, e.g. ICLR.cc/2025/Conference")
-    p.add_argument("--out", type=Path, default=Path("runs"),
-                   help="Base directory for search runs")
-    p.add_argument("--run-name", dest="run_name",
-                   help="Subdirectory name under --out; default timestamp")
-    p.add_argument("--style", choices=["gb7714", "ieee"], default="gb7714",
-                   help="Which *extra* textual list to generate in addition to .bib & .ris.")
-    p.add_argument("--max", type=int, default=None, help="Download at most N papers.")
-    p.add_argument("--include-submitted", action="store_true",
-                   help="Also include under-review / desk-rejected / withdrawn submissions.")
+    p.add_argument(
+        "--query",
+        required=True,
+        help="Keyword / regex (case-insensitive) to match in title / abstract.",
+    )
+    p.add_argument(
+        "--venues",
+        nargs="+",
+        required=True,
+        metavar="VENUE_ID",
+        help="One or more OpenReview venue IDs, e.g. ICLR.cc/2025/Conference",
+    )
+    p.add_argument(
+        "--out",
+        type=Path,
+        default=Path("runs"),
+        help="Base directory for search runs",
+    )
+    p.add_argument(
+        "--run-name",
+        dest="run_name",
+        help="Subdirectory name under --out; default timestamp",
+    )
+    p.add_argument(
+        "--style",
+        choices=["gb7714", "ieee"],
+        default="gb7714",
+        help="Which *extra* textual list to generate in addition to .bib & .ris.",
+    )
+    p.add_argument(
+        "--max",
+        type=int,
+        default=None,
+        help="Download at most N papers (across all venues).",
+    )
+    p.add_argument(
+        "--include-submitted",
+        action="store_true",
+        help=(
+            "Also include under-review / desk-rejected / withdrawn submissions. "
+            "默认只保留已正式发表（content['venueid'] == VENUE_ID）的 note。"
+        ),
+    )
     return p.parse_args(argv)
 
 # ─────────────────────────── OpenReview 连接 ────────────────────────────────
@@ -68,40 +106,29 @@ def connect_client() -> "openreview.api.OpenReviewClient":
     password = os.getenv("OPENREVIEW_PASSWORD")
     if not (username and password):
         sys.exit("Error: please set OPENREVIEW_USERNAME & OPENREVIEW_PASSWORD env vars.")
-    return openreview.api.OpenReviewClient(baseurl=API_BASE_URL, username=username, password=password)
-
-# ──────────────────────────── 迭代笔记 ───────────────────────────────────────
-def submission_invitation(client, venue_id: str) -> str:
-    group = client.get_group(venue_id)
-    sub_name = group.content["submission_name"]["value"]
-    return f"{venue_id}/-/{sub_name}"
-
-def iter_notes(client, venue_id: str, include_submitted: bool):
-    for note in client.get_all_notes(content={"venueid": venue_id}):
-        yield note
-    if include_submitted:
-        invitation = submission_invitation(client, venue_id)
-        seen = set()
-        for note in client.get_all_notes(invitation=invitation):
-            if note.id not in seen:
-                seen.add(note.id)
-                yield note
+    return openreview.api.OpenReviewClient(
+        baseurl=API_BASE_URL, username=username, password=password
+    )
 
 # ──────────────────────────── 工具函数 ───────────────────────────────────────
-def safe_filename(title: str, number: int) -> str:
+def safe_filename(title: str, number: int | None) -> str:
+    """把标题变成安全的文件名；number 可空。"""
     title = re.sub(r"[\\/*?:\"<>|]", "", title)
     title = re.sub(r"\s+", " ", title).strip()
-    return f"{number}_{title[:100]}.pdf"
+    prefix = f"{int(number):03d}_" if isinstance(number, int) else ""
+    return f"{prefix}{title[:100]}.pdf"
 
 def matches(note, pattern: re.Pattern[str]) -> bool:
-    fields = [note.content["title"]["value"],
-              note.content.get("abstract", {}).get("value", "")]
-    return any(pattern.search(f) for f in fields)
+    """本地 regex 复核，兼容原有行为。"""
+    content = note.content or {}
+    title = content.get("title", {}).get("value", "") or ""
+    abstract = content.get("abstract", {}).get("value", "") or ""
+    return any(pattern.search(f) for f in (title, abstract))
 
 def download_pdf(client, note, dest: Path) -> bool:
     try:
         data = client.get_attachment(id=note.id, field_name="pdf")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"[warn] PDF missing for {note.id}: {e}")
         return False
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -119,7 +146,7 @@ def extract_pages(info: dict, pdf_path: Path | None = None) -> str:
         try:
             n_pages = len(PdfReader(str(pdf_path)).pages)
             return f"1-{n_pages}"
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
     return "n/a"
 
@@ -128,6 +155,66 @@ def expand_venue_name(raw: str) -> str:
         if abbr.lower() in raw.lower():
             return full
     return raw
+
+# ──────────────── 在指定 venue 内用 search_notes 检索 ──────────────────────
+def search_notes_in_venue(
+    client: "openreview.api.OpenReviewClient",
+    venue_id: str,
+    term: str,
+    include_submitted: bool,
+    limit: int | None,
+):
+    """
+    使用 Elasticsearch search_notes 在服务器端按关键词 + group 检索。
+
+    - term: 关键字字符串（来自 --query）。
+    - venue_id: 例如 'ICLR.cc/2025/Conference'，作为 group 限定范围。
+    - include_submitted=False: 仅保留 content['venueid'] == venue_id 的 note，
+      即“已正式发表”的论文。
+    - include_submitted=True: 不再限定 venueid，保留该 group 范围下所有匹配 term 的 note。
+    - limit: 在该 venue 内最多返回多少条（用于配合全局 --max）。
+    """
+    fetched = 0
+    offset = 0
+    # search_notes 的单次 limit 最大 1000；这里安全起见控制一下
+    MAX_BATCH = 1000
+
+    while True:
+        if limit is not None:
+            remaining = limit - fetched
+            if remaining <= 0:
+                return
+            batch_limit = min(remaining, MAX_BATCH)
+        else:
+            batch_limit = MAX_BATCH
+
+        notes = client.search_notes(
+            term=term,
+            content="all",     # 在标题 / 摘要 / 关键词等全部内容里搜
+            group=venue_id,    # 限定在该 venue group 下
+            source="all",
+            limit=batch_limit,
+            offset=offset,
+        )
+
+        if not notes:
+            return
+
+        for note in notes:
+            content = note.content or {}
+            venueid = content.get("venueid", {}).get("value", "")
+
+            if not include_submitted:
+                # 默认：只要“已正式发表”的 note
+                if venueid != venue_id:
+                    continue
+
+            yield note
+            fetched += 1
+            if limit is not None and fetched >= limit:
+                return
+
+        offset += len(notes)
 
 # ──────────────────── 文本清单 (IEE / GB-T 7714) ────────────────────────────
 def join_ieee_authors(authors: List[str]) -> str:
@@ -143,63 +230,82 @@ def first_n_authors(authors: List[str], n: int = 3) -> str:
     return "; ".join(authors) if len(authors) <= n else "; ".join(authors[:n]) + ", et al."
 
 def gb7714_reference(note, idx: int, pages: str) -> str:
-    info = note.content
+    info = note.content or {}
     authors = first_n_authors(info.get("authors", {}).get("value", []))
-    title = info["title"]["value"]
-    venue = expand_venue_name(info.get("venue", {}).get("value") or
-                              info.get("venueid", {}).get("value") or "")
-    year = info.get("year", {}).get("value") if "year" in info \
-        else _dt.datetime.fromtimestamp(note.cdate / 1000).year+1
+    title = info.get("title", {}).get("value", "")
+    venue = expand_venue_name(
+        info.get("venue", {}).get("value")
+        or info.get("venueid", {}).get("value")
+        or ""
+    )
+    if "year" in info:
+        year = info["year"]["value"]
+    else:
+        year = _dt.datetime.fromtimestamp(note.cdate / 1000).year + 1
     pub_type = "[C]" if "Conference" in venue or "Proceedings" in venue else "[J]"
     pp = f", pp. {pages}" if pages and pages != "n/a" else ""
     return f"[{idx}] {authors}. {title}{pub_type}. {venue}, {year}{pp}."
 
 def ieee_reference(note, idx: int, pages: str) -> str:
-    info = note.content
+    info = note.content or {}
     authors = join_ieee_authors(info.get("authors", {}).get("value", []))
-    title = info["title"]["value"]
-    venue_full = expand_venue_name(info.get("venue", {}).get("value") or
-                                   info.get("venueid", {}).get("value") or "")
+    title = info.get("title", {}).get("value", "")
+    venue_full = expand_venue_name(
+        info.get("venue", {}).get("value")
+        or info.get("venueid", {}).get("value")
+        or ""
+    )
     venue_str = venue_full if venue_full.lower().startswith("in ") \
         else f"in Proceedings of the {venue_full}"
-    year = info.get("year", {}).get("value") if "year" in info \
-        else _dt.datetime.fromtimestamp(note.cdate / 1000).year+1
+    if "year" in info:
+        year = info["year"]["value"]
+    else:
+        year = _dt.datetime.fromtimestamp(note.cdate / 1000).year + 1
     pp = f", pp. {pages}" if pages and pages != "n/a" else ""
     return f"{authors}, \"{title},\" {venue_str}, {year}{pp}."
 
 # ──────────────────────────── RIS / BibTeX ──────────────────────────────────
 def ris_reference(note, idx: int, pages: str) -> str:
-    info = note.content
+    info = note.content or {}
     authors = info.get("authors", {}).get("value", [])
-    title = info["title"]["value"]
-    venue = expand_venue_name(info.get("venue", {}).get("value") or
-                              info.get("venueid", {}).get("value") or "")
-    year = info.get("year", {}).get("value") if "year" in info \
-        else _dt.datetime.fromtimestamp(note.cdate / 1000).year+1
+    title = info.get("title", {}).get("value", "")
+    venue = expand_venue_name(
+        info.get("venue", {}).get("value")
+        or info.get("venueid", {}).get("value")
+        or ""
+    )
+    if "year" in info:
+        year = info["year"]["value"]
+    else:
+        year = _dt.datetime.fromtimestamp(note.cdate / 1000).year + 1
     url = f"https://openreview.net/forum?id={note.id}"
     ty = "CONF" if "Conference" in venue or "Proceedings" in venue else "JOUR"
 
     ris = [f"TY  - {ty}"]
     for au in authors:
         ris.append(f"AU  - {au}")
-    ris.extend([
-        f"TI  - {title}",
-        f"PY  - {year}",
-    ])
+    ris.extend(
+        [
+            f"TI  - {title}",
+            f"PY  - {year}",
+        ]
+    )
     if pages and pages != "n/a":
         ris.append(f"SP  - {pages}")
     abstract = info.get("abstract", {}).get("value")
     if abstract:
         ris.append(f"AB  - {abstract}")
-    ris.extend([
-        f"T2  - {venue}",
-        f"UR  - {url}",
-        "ER  -"
-    ])
+    ris.extend(
+        [
+            f"T2  - {venue}",
+            f"UR  - {url}",
+            "ER  -",
+        ]
+    )
     return "\n".join(ris)
 
 def bib_reference(note, pages: str) -> str:
-    info = note.content
+    info = note.content or {}
     abstract = info.get("abstract", {}).get("value", "")
     # 若 _bibtex 已存在 → 复用
     if "_bibtex" in info and info["_bibtex"]["value"].strip().startswith("@"):
@@ -212,13 +318,18 @@ def bib_reference(note, pages: str) -> str:
         return entry + "\n}"
     # 否则手动拼装
     authors = " and ".join(info.get("authors", {}).get("value", []))
-    title = info["title"]["value"]
-    venue = expand_venue_name(info.get("venue", {}).get("value") or
-                              info.get("venueid", {}).get("value") or "")
-    year = info.get("year", {}).get("value") if "year" in info \
-        else _dt.datetime.fromtimestamp(note.cdate / 1000).year+1
+    title = info.get("title", {}).get("value", "")
+    venue = expand_venue_name(
+        info.get("venue", {}).get("value")
+        or info.get("venueid", {}).get("value")
+        or ""
+    )
+    if "year" in info:
+        year = info["year"]["value"]
+    else:
+        year = _dt.datetime.fromtimestamp(note.cdate / 1000).year + 1
     url = f"https://openreview.net/forum?id={note.id}"
-    key = re.sub(r"\W+", "", authors.split(" ")[-1] + str(year))
+    key = re.sub(r"\W+", "", (authors.split(" ")[-1] if authors else "paper") + str(year))
     lines = [
         f"@inproceedings{{{key},",
         f"  title     = {{{title}}},",
@@ -252,33 +363,58 @@ def main(argv: List[str] | None = None):
     run_dir.mkdir(parents=True, exist_ok=True)
 
     (run_dir / "meta.json").write_text(
-        json.dumps({
-            "query": args.query,
-            "venues": args.venues,
-            "timestamp": run_name,
-            "style": args.style,
-        }, ensure_ascii=False, indent=2),
-        encoding="utf-8"
+        json.dumps(
+            {
+                "query": args.query,
+                "venues": args.venues,
+                "timestamp": run_name,
+                "style": args.style,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
     )
 
-    txt_refs, bib_refs, ris_refs = [], [], []
+    txt_refs: List[str] = []
+    bib_refs: List[str] = []
+    ris_refs: List[str] = []
     downloaded = 0
 
     for venue in args.venues:
-        print(f"\n>>> Scanning {venue} …")
+        print(f"\n>>> Scanning {venue} (via search_notes) …")
+
+        # 为当前 venue 计算还可以下载多少篇
+        per_venue_limit = None
+        if args.max is not None:
+            remaining = args.max - downloaded
+            if remaining <= 0:
+                break
+            per_venue_limit = remaining
+
         try:
-            notes_iter = iter_notes(client, venue, args.include_submitted)
-        except Exception as e:
-            print(f"[error] Cannot fetch {venue}: {e}")
+            notes_iter = search_notes_in_venue(
+                client=client,
+                venue_id=venue,
+                term=args.query,
+                include_submitted=args.include_submitted,
+                limit=per_venue_limit,
+            )
+        except Exception as e:  # noqa: BLE001
+            print(f"[error] Cannot search {venue}: {e}")
             continue
 
         for note in tqdm(notes_iter, unit="paper"):
             if args.max is not None and downloaded >= args.max:
                 break
+
+            # 本地再做一遍 regex 过滤，兼容原有“正则匹配标题/摘要”的语义
             if not matches(note, regex):
                 continue
 
-            filename = safe_filename(note.content["title"]["value"], note.number)
+            title = note.content.get("title", {}).get("value", "untitled")
+            number = getattr(note, "number", None)
+            filename = safe_filename(title, number)
             pdf_path = pdf_root / venue.replace("/", "_") / filename
 
             if pdf_path.exists() or download_pdf(client, note, pdf_path):
@@ -297,16 +433,22 @@ def main(argv: List[str] | None = None):
 
     # ───────────── 文件写出 ───────────────────────────────────────────────
     if bib_refs:
-        (run_dir / "references.bib").write_text("\n\n".join(bib_refs), encoding="utf-8")
+        (run_dir / "references.bib").write_text(
+            "\n\n".join(bib_refs), encoding="utf-8"
+        )
     if ris_refs:
-        (run_dir / "references.ris").write_text("\n\n".join(ris_refs), encoding="utf-8")
+        (run_dir / "references.ris").write_text(
+            "\n\n".join(ris_refs), encoding="utf-8"
+        )
     if txt_refs:
         fname = f"references_{args.style}.txt"
         (run_dir / fname).write_text("\n".join(txt_refs), encoding="utf-8")
 
     if any([bib_refs, ris_refs, txt_refs]):
-        print(f"\n✔ Saved {len(bib_refs)} BibTeX, {len(ris_refs)} RIS "
-              f"and {len(txt_refs)} {args.style.upper()} entries → {run_dir}")
+        print(
+            f"\n✔ Saved {len(bib_refs)} BibTeX, {len(ris_refs)} RIS "
+            f"and {len(txt_refs)} {args.style.upper()} entries → {run_dir}"
+        )
     else:
         print("\nNo matching papers; nothing generated.")
 
