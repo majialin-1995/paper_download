@@ -12,3 +12,7 @@ ENV/
 # Editor directories and files
 .vscode/
 .idea/
+
+# Ignore all PPTX except template.pptx
+*.pptx
+!template.pptx

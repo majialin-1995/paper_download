@@ -1,34 +1,48 @@
 #!/usr/bin/env python3
-"""根据 summaries 目录生成演示文稿（占位符替换版）
-
-使用说明
---------
-python generate_ppt.py summaries/ --template template.pptx --out slides.pptx
-
-PPT 模板内应包含形如 {{title}}, {{reference}}, {{Pages}}, {{totalpages}},
-{{problems}}, {{methods}}, {{results}} 的占位符。
+"""
+根据 summaries 目录生成演示文稿（占位符替换版）
 """
 
 from __future__ import annotations
+
 import argparse
+import copy
 import json
 import re
-import copy
 from pathlib import Path
 from typing import Any, Dict, List
 
 try:
     from pptx import Presentation
-    from pptx.util import Pt
 except Exception:
     Presentation = None
 
-PLACEHOLDER_FIELDS = {
-    "{{title}}",
-    "{{reference}}",
-    "{{Pages}}",
-    "{{problems}}", "{{methods}}", "{{results}}"
-}
+
+# ───────────────────────── 参数解析 ───────────────────────── #
+
+def parse_args(argv: List[str] | None = None) -> argparse.Namespace:
+    p = argparse.ArgumentParser("根据 summaries 生成 PPT（占位符版）")
+    p.add_argument("summaries", type=Path, help="包含 JSON 摘要的目录")
+    p.add_argument(
+        "--template", type=Path, default=Path("template.pptx"),
+        help="PPT 模板文件路径"
+    )
+    p.add_argument(
+        "--out", type=Path, default=Path("slides.pptx"),
+        help="输出 PPT 文件名"
+    )
+    p.add_argument(
+        "--refs", type=Path, default=Path("papers/references_ieee.txt"),
+        help="参考文献文本（每行一条）"
+    )
+    p.add_argument(
+        "--print-info", action="store_true",
+        help="仅打印摘要信息，不生成 PPT"
+    )
+    return p.parse_args(argv)
+
+
+# ─────────────────────── 工具函数 ─────────────────────── #
 
 def find_reference(title: str, refs: List[str]) -> str:
     norm = re.sub(r"[^\w\s]", "", title).lower()
@@ -37,14 +51,6 @@ def find_reference(title: str, refs: List[str]) -> str:
             return line
     return ""
 
-def parse_args(argv: List[str] | None = None) -> argparse.Namespace:
-    p = argparse.ArgumentParser("根据 summaries 生成 PPT（占位符版）")
-    p.add_argument("summaries", type=Path, help="包含 JSON 摘要的目录")
-    p.add_argument("--template", type=Path, default=Path("template.pptx"), help="PPT 模板")
-    p.add_argument("--out", type=Path, default=Path("slides.pptx"), help="输出文件名")
-    p.add_argument("--refs", type=Path, default=Path("papers/references_ieee.txt"), help="参考文献文本")
-    p.add_argument("--print-info", action="store_true", help="仅打印摘要信息，不生成 PPT")
-    return p.parse_args(argv)
 
 def duplicate_slide(prs, slide):
     new_slide = prs.slides.add_slide(slide.slide_layout)
@@ -54,69 +60,82 @@ def duplicate_slide(prs, slide):
         new_slide.shapes._spTree.insert_element_before(new_el, 'p:extLst')
     return new_slide
 
-def list_to_text(lst: list[str] | None) -> str:
-    return "\n".join(str(x) for x in (lst or []))
 
-def result_to_text(result) -> str:
-    try:
-        if result is None:
-            return ""
-        if isinstance(result, dict):
-            # 获取实验环境信息，字段名称可能有所不同
-            env = (
-                result.get("datasets_environments")
-                or result.get("datasets")
-                or result.get("dataset_environment")
-            )
-            if isinstance(env, list):
-                env_text = "、".join(env)
-            else:
-                env_text = str(env) if env else ""
+# ①②③… 生成器
+CIRCLES = ["①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩",
+           "⑪","⑫","⑬","⑭","⑮","⑯","⑰","⑱","⑲","⑳"]
 
-            perf = result.get("performance")
-            if isinstance(perf, list):
-                perf_text = " ".join(str(x) for x in perf)
-            else:
-                perf_text = str(perf) if perf is not None else ""
-
-            parts = []
-            if env_text:
-                parts.append(f"实验中使用了{env_text}环境")
-            if perf_text:
-                parts.append(f"\n结果：{perf_text}")  # ← 改为换行
-            return "".join(parts)
-
-        return str(result)
-    except Exception:
-        return str(result)
+def indexed_text(lst: List[Any] | None) -> str:
+    """
+    把 List[str] 转成：
+      ① 内容
+      ② 内容
+      ③ 内容
+    """
+    if not lst:
+        return ""
+    out = []
+    for i, item in enumerate(lst):
+        mark = CIRCLES[i] if i < len(CIRCLES) else f"({i+1})"
+        out.append(f"{mark} {item}")
+    return "\n".join(out)
 
 
+# 现象仍然不编号，需要就告诉我
+def plain_text(lst: List[Any] | None) -> str:
+    if not lst:
+        return ""
+    return "\n".join(str(x) for x in lst)
 
-def fill_placeholders(slide, data: dict[str, Any], title: str, reference: str,
-                      page: int, total: int, section: str, idx: int) -> None:
-    mapping = {
-        "{{No.}}": str(idx),
-        "{{title}}": title,
-        "{{reference}}": reference,
-        "{{Pages}}": str(page)+" / "+str(total),
+
+# ─────────────────────── 占位符填充 ─────────────────────── #
+
+def fill_placeholders(
+    slide,
+    data: Dict[str, Any],
+    title: str,
+    reference: str,
+    page: int,
+    total_pages: int,
+    section: str,
+    idx: int
+) -> None:
+
+    phenomenon = data.get("phenomenon") or []
+    problems   = data.get("problem")    or []
+    methods    = data.get("mechanism")  or []
+    results    = data.get("result")     or []
+
+    mapping: Dict[str, str] = {
+        "{{No.}}":        str(idx),
+        "{{title}}":      title,
+        "{{reference}}":  reference or "",
+        "{{Pages}}":      f"{page} / {total_pages}",
+        "{{totalpages}}": str(total_pages),
     }
-    if section == "intro":
-        mapping["{{problems}}"] = "针对"+str(data.get("phenomenon"))+ "：\n" + list_to_text(data.get("problem"))
-        mapping["{{methods}}"] = list_to_text(data.get("mechanism"))
-    elif section == "conclusion":
-        mapping["{{results}}"] = result_to_text(data.get("result"))
 
+    if section == "intro":
+        mapping["{{phenomenon}}"] = plain_text(phenomenon)   # 现象不编号
+        mapping["{{problems}}"]   = indexed_text(problems)    # 编号 ①②③
+        mapping["{{methods}}"]    = indexed_text(methods)     # 编号 ①②③
+
+    elif section == "conclusion":
+        mapping["{{results}}"]    = indexed_text(results)     # 编号 ①②③
+
+    # 替换占位符
     for shape in slide.shapes:
         if not shape.has_text_frame:
             continue
-        tf = shape.text_frame
-        for paragraph in tf.paragraphs:
+        for paragraph in shape.text_frame.paragraphs:
             for run in paragraph.runs:
-                txt = run.text
-                for ph, value in mapping.items():
-                    if ph in txt:
-                        txt = txt.replace(ph, value)
-                run.text = txt
+                t = run.text
+                for ph, val in mapping.items():
+                    if ph in t:
+                        t = t.replace(ph, val)
+                run.text = t
+
+
+# ───────────────────────── 主逻辑 ───────────────────────── #
 
 def main(argv: List[str] | None = None) -> None:
     args = parse_args(argv)
@@ -131,60 +150,58 @@ def main(argv: List[str] | None = None) -> None:
             data = json.loads(jf.read_text(encoding="utf-8"))
             title = jf.stem.split("_", 1)[1] if "_" in jf.stem else jf.stem
             ref = find_reference(title, refs)
-            print(f"{i}. {title}\n{'-'*len(title)}")
-            if ref:
-                print(ref)
+            print(f"{i}. {title}")
+            print(ref)
             print(json.dumps(data, ensure_ascii=False, indent=2), "\n")
         return
 
     if Presentation is None:
-        raise SystemExit("请先: pip install python-pptx")
+        raise SystemExit("请安装 python-pptx： pip install python-pptx")
 
     prs = Presentation(str(args.template))
 
-    base_intro, base_conclusion, base_thankyou = None, None, None
+    base_title = base_intro = base_conclusion = None
+
+    # 找模板页
     for s in prs.slides:
-        text = "\n".join(sh.text for sh in s.shapes if sh.has_text_frame)
-        if "{{title}}" in text:
+        txt = "\n".join(sh.text for sh in s.shapes if sh.has_text_frame)
+        if "{{title}}" in txt and base_title is None:
             base_title = s
-        elif "{{problems}}" in text and "{{methods}}" in text:
+        if "{{problems}}" in txt and "{{methods}}" in txt:
             base_intro = s
-        elif "{{results}}" in text:
+        if "{{results}}" in txt:
             base_conclusion = s
 
     if not all([base_title, base_intro, base_conclusion]):
-        raise SystemExit("❌ 模板缺失三页中的一页: title/intro/conclusion")
+        raise SystemExit("❌ 模板缺失 title/intro/conclusion 的任意一页")
 
     ref_lines = args.refs.read_text(encoding="utf-8").splitlines() if args.refs.is_file() else []
-    total = 125
+
+    template_slide_count = len(prs.slides)
+    extra = 3
+    total_pages = template_slide_count + extra * len(json_files)
 
     for idx, jf in enumerate(json_files, 1):
         data = json.loads(jf.read_text(encoding="utf-8"))
         title = jf.stem.split("_", 1)[1] if "_" in jf.stem else jf.stem
         reference = find_reference(title, ref_lines)
 
+        page1 = template_slide_count + extra * (idx - 1) + 1
+        page2 = page1 + 1
+        page3 = page1 + 2
+
         slide1 = duplicate_slide(prs, base_title)
-        fill_placeholders(slide1, data, title, reference, 3*idx-2+5, total, section="intro", idx=idx)
+        fill_placeholders(slide1, data, title, reference, page1, total_pages, "title", idx)
 
         slide2 = duplicate_slide(prs, base_intro)
-        fill_placeholders(slide2, data, title, reference, 3*idx-1+5, total, section="intro", idx=idx)
+        fill_placeholders(slide2, data, title, reference, page2, total_pages, "intro", idx)
 
         slide3 = duplicate_slide(prs, base_conclusion)
-        fill_placeholders(slide3, data, title, reference, 3*idx+5, total, section="conclusion", idx=idx)
+        fill_placeholders(slide3, data, title, reference, page3, total_pages, "conclusion", idx)
 
     prs.save(args.out)
-    print(f"✔ 已保存: {args.out}")
+    print(f"✔ 已生成: {args.out}")
 
-    # 额外生成 No. + Reference 的 txt 列表
-    ref_list_txt = []
-    for idx, jf in enumerate(json_files, 1):
-        title = jf.stem.split("_", 1)[1] if "_" in jf.stem else jf.stem
-        reference = find_reference(title, ref_lines)
-        ref_list_txt.append(f"[{idx}]. {reference}")
-
-    ref_output_path = args.out.with_name("references_list.txt")
-    ref_output_path.write_text("\n\n".join(ref_list_txt), encoding="utf-8")
-    print(f"✔ 已额外保存参考文献列表: {ref_output_path}")
 
 if __name__ == "__main__":
     main()
